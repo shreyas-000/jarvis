@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jarvis</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --border: #1e1e2e;
+      --accent: #00d4ff;
+      --accent2: #7c3aed;
+      --text: #e2e2f0;
+      --muted: #6b6b8a;
+      --error: #ff4f6a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Welcome overlay ── */
+    #welcome-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      gap: 24px;
+      transition: opacity 0.6s ease;
+    }
+    #welcome-overlay.hidden { opacity: 0; pointer-events: none; }
+
+    .welcome-ring {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      border: 3px solid var(--accent);
+      box-shadow: 0 0 40px var(--accent), inset 0 0 20px rgba(0,212,255,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 20px var(--accent), inset 0 0 10px rgba(0,212,255,0.1); }
+      50%       { box-shadow: 0 0 60px var(--accent), inset 0 0 30px rgba(0,212,255,0.2); }
+    }
+
+    .welcome-title { font-size: 2rem; font-weight: 700; letter-spacing: 0.1em; color: var(--accent); }
+    .welcome-sub   { color: var(--muted); font-size: 0.95rem; }
+
+    .welcome-btn {
+      margin-top: 8px;
+      padding: 12px 36px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .welcome-btn:hover { opacity: 0.85; }
+
+    /* ── Header ── */
+    header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+    }
+    .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+    }
+    header h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.15em; color: var(--accent); }
+    header span { font-size: 0.75rem; color: var(--muted); margin-left: auto; }
+
+    /* ── Chat area ── */
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-behavior: smooth;
+    }
+    #chat::-webkit-scrollbar { width: 4px; }
+    #chat::-webkit-scrollbar-track { background: transparent; }
+    #chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .msg {
+      max-width: 72%;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      animation: fade-in 0.25s ease;
+    }
+    @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    .msg.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--accent2), #4f1e9a);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .msg.jarvis {
+      align-self: flex-start;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+      color: var(--text);
+    }
+    .msg.jarvis .label { font-size: 0.7rem; color: var(--accent); font-weight: 600; margin-bottom: 4px; }
+
+    .typing { display: flex; gap: 5px; align-items: center; padding: 14px 16px; }
+    .typing span {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent); opacity: 0.4;
+      animation: bounce 1.2s ease-in-out infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0.8); opacity: 0.4; }
+      40%            { transform: scale(1.2); opacity: 1; }
+    }
+
+    /* ── Input bar ── */
+    #input-bar {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #query {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 0.92rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #query:focus { border-color: var(--accent); }
+    #query::placeholder { color: var(--muted); }
+
+    .icon-btn {
+      width: 40px; height: 40px;
+      border: none; border-radius: 8px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      transition: opacity 0.2s, background 0.2s;
+    }
+    #send-btn { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+    #send-btn:hover { opacity: 0.85; }
+    #mic-btn  { background: var(--border); color: var(--text); }
+    #mic-btn.listening { background: var(--error); color: #fff; animation: pulse-btn 1s ease infinite; }
+    @keyframes pulse-btn { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    #tts-btn  { background: var(--border); color: var(--text); font-size: 0.85rem; width: auto; padding: 0 12px; }
+    #tts-btn.active { background: var(--accent2); color: #fff; }
+  </style>
+</head>
+<body>
+
+<!-- Welcome overlay (shown on first visit only) -->
+<div id="welcome-overlay">
+  <div class="welcome-ring">🤖</div>
+  <div class="welcome-title">JARVIS</div>
+  <div class="welcome-sub">Your AI assistant is online</div>
+  <button class="welcome-btn" onclick="dismissWelcome()">Get Started</button>
+</div>
+
+<header>
+  <div class="dot"></div>
+  <h1>JARVIS</h1>
+  <span id="status-label">Ready</span>
+</header>
+
+<div id="chat"></div>
+
+<div id="input-bar">
+  <input id="query" type="text" placeholder="Ask Jarvis anything..." autocomplete="off" />
+  <button class="icon-btn" id="mic-btn"  title="Voice input"  onclick="toggleMic()">🎙️</button>
+  <button class="icon-btn" id="tts-btn"  title="Toggle voice" onclick="toggleTTS()">🔊</button>
+  <button class="icon-btn" id="send-btn" title="Send"         onclick="sendQuery()">➤</button>
+</div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  let chatHistory = "";
+  let ttsEnabled  = true;
+  let recognition = null;
+  let isListening = false;
+
+  const chat     = document.getElementById("chat");
+  const queryEl  = document.getElementById("query");
+  const micBtn   = document.getElementById("mic-btn");
+  const ttsBtn   = document.getElementById("tts-btn");
+  const statusEl = document.getElementById("status-label");
+
+  // ── Welcome (first visit only) ─────────────────────────────────────────────
+  window.addEventListener("DOMContentLoaded", () => {
+    const visited = localStorage.getItem("jarvis_visited");
+    if (!visited) {
+      // Speak welcome after a short delay so browser allows autoplay
+      setTimeout(() => speak("Hello cipheroot. I am Jarvis. How may I help you?"), 600);
+    } else {
+      document.getElementById("welcome-overlay").classList.add("hidden");
+      addMessage("jarvis", "Welcome back. How can I help you?");
+    }
+  });
+
+  function dismissWelcome() {
+    localStorage.setItem("jarvis_visited", "true");
+    document.getElementById("welcome-overlay").classList.add("hidden");
+    addMessage("jarvis", "Hello cipheroot. I'm Jarvis. How may I help you?");
+  }
+
+  // ── TTS (Web Speech API) ───────────────────────────────────────────────────
+  function speak(text) {
+    if (!ttsEnabled || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.rate = 1.05;
+    utt.pitch = 0.9;
+    window.speechSynthesis.speak(utt);
+  }
+
+  function toggleTTS() {
+    ttsEnabled = !ttsEnabled;
+    ttsBtn.classList.toggle("active", ttsEnabled);
+    ttsBtn.textContent = ttsEnabled ? "🔊" : "🔇";
+    if (!ttsEnabled) window.speechSynthesis.cancel();
+  }
+
+  // ── STT (Web Speech API) ───────────────────────────────────────────────────
+  function toggleMic() {
+    if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
+      addMessage("jarvis", "Speech recognition isn't supported in this browser. Try Chrome.");
+      return;
+    }
+    if (isListening) { recognition?.stop(); return; }
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      isListening = true;
+      micBtn.classList.add("listening");
+      setStatus("Listening…");
+    };
+    recognition.onresult = (e) => {
+      queryEl.value = e.results[0][0].transcript;
+    };
+    recognition.onend = () => {
+      isListening = false;
+      micBtn.classList.remove("listening");
+      setStatus("Ready");
+      if (queryEl.value.trim()) sendQuery();
+    };
+    recognition.onerror = () => {
+      isListening = false;
+      micBtn.classList.remove("listening");
+      setStatus("Ready");
+    };
+    recognition.start();
+  }
+
+  // ── Chat ───────────────────────────────────────────────────────────────────
+  queryEl.addEventListener("keydown", (e) => { if (e.key === "Enter") sendQuery(); });
+
+  async function sendQuery() {
+    const query = queryEl.value.trim();
+    if (!query) return;
+    queryEl.value = "";
+    addMessage("user", query);
+
+    // Built-in commands (handled client-side)
+    const lower = query.toLowerCase();
+    const sites = [
+      ["youtube",    "https://www.youtube.com"],
+      ["wikipedia",  "https://www.wikipedia.org"],
+      ["google",     "https://www.google.com"],
+      ["github",     "https://www.github.com"],
+    ];
+    for (const [name, url] of sites) {
+      if (lower.includes(`open ${name}`)) {
+        speak(`Opening ${name}`);
+        addMessage("jarvis", `Opening ${name}…`);
+        window.open(url, "_blank");
+        return;
+      }
+    }
+    if (lower.includes("the time")) {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const reply = `The time is ${timeStr}.`;
+      addMessage("jarvis", reply);
+      speak(reply);
+      return;
+    }
+    if (lower === "reset chat") {
+      chatHistory = "";
+      addMessage("jarvis", "Chat history cleared.");
+      return;
+    }
+
+    // LLM call
+    const typingId = addTyping();
+    setStatus("Thinking…");
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, chatHistory }),
+      });
+      const data = await res.json();
+      removeTyping(typingId);
+      if (data.error) {
+        addMessage("jarvis", `Error: ${data.error}`);
+      } else {
+        chatHistory = data.chatHistory;
+        addMessage("jarvis", data.reply);
+        speak(data.reply);
+      }
+    } catch (err) {
+      removeTyping(typingId);
+      addMessage("jarvis", `Network error: ${err.message}`);
+    }
+    setStatus("Ready");
+  }
+
+  // ── UI helpers ─────────────────────────────────────────────────────────────
+  function addMessage(role, text) {
+    const div = document.createElement("div");
+    div.className = `msg ${role}`;
+    if (role === "jarvis") {
+      div.innerHTML = `<div class="label">JARVIS</div>${escHtml(text)}`;
+    } else {
+      div.textContent = text;
+    }
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
+  }
+
+  function addTyping() {
+    const id = "typing-" + Date.now();
+    const div = document.createElement("div");
+    div.className = "msg jarvis typing";
+    div.id = id;
+    div.innerHTML = '<div class="label">JARVIS</div><span></span><span></span><span></span>';
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return id;
+  }
+
+  function removeTyping(id) {
+    document.getElementById(id)?.remove();
+  }
+
+  function setStatus(text) { statusEl.textContent = text; }
+
+  function escHtml(str) {
+    return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+</script>
+</body>
+</html>
