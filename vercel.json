@@ -1,4 +1,5 @@
 {
+  "outputDirectory": "public",
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1.py" },
     { "src": "/(.*)",     "dest": "/public/index.html" }
