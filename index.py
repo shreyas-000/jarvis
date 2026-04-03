@@ -1,9 +1,11 @@
 import os
 import re
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 
 app = Flask(__name__)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 OPENROUTER_MODEL   = os.environ.get("OPENROUTER_MODEL", "meta-llama/llama-3.1-8b-instruct:free")
@@ -40,8 +42,8 @@ def chat():
     if request.method == "OPTIONS":
         return _cors_response(jsonify({}), 200)
 
-    body        = request.get_json(force=True)
-    query       = (body.get("query") or "").strip()
+    body         = request.get_json(force=True)
+    query        = (body.get("query") or "").strip()
     chat_history = body.get("chatHistory", "")
 
     if not query:
@@ -63,6 +65,12 @@ def chat():
 
     updated_history = chat_history + f"User: {query}\nJarvis: {reply}\n"
     return _cors_response(jsonify({"reply": reply, "chatHistory": updated_history}), 200)
+
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_frontend(path):
+    return send_from_directory(BASE_DIR, "index.html")
 
 
 def _cors_response(response, status):
