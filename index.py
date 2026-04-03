@@ -74,7 +74,7 @@ def build_messages(chat_history: str, query: str) -> list:
     for line in chat_history.strip().split("\n"):
         if line.startswith("User: "):
             messages.append({"role": "user",      "content": line[6:]})
-        elif line.startswith("Jarvis: "):
+        elif line.startswith("Siddarth ka mega project Jarvis: "):
             messages.append({"role": "assistant", "content": line[8:]})
     messages.append({"role": "user", "content": query})
     return messages
