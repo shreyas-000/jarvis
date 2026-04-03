@@ -174,21 +174,21 @@
 <!-- Welcome overlay (shown on first visit only) -->
 <div id="welcome-overlay">
   <div class="welcome-ring">🤖</div>
-  <div class="welcome-title">JARVIS</div>
-  <div class="welcome-sub">Your AI assistant is online</div>
+  <div class="welcome-title">SIDDARTH KA MEGA PROJECT JARVIS</div>
+  <div class="welcome-sub">Siddarth's megaproject Jarvis is online</div>
   <button class="welcome-btn" onclick="dismissWelcome()">Get Started</button>
 </div>
 
 <header>
   <div class="dot"></div>
-  <h1>JARVIS</h1>
+  <h1>SIDDARTH KA MEGA PROJECT JARVIS</h1>
   <span id="status-label">Ready</span>
 </header>
 
 <div id="chat"></div>
 
 <div id="input-bar">
-  <input id="query" type="text" placeholder="Ask Jarvis anything..." autocomplete="off" />
+  <input id="query" type="text" placeholder="Ask SIDDARTH KA MEGA PROJECT JARVIS anything..." autocomplete="off" />
   <button class="icon-btn" id="mic-btn"  title="Voice input"  onclick="toggleMic()">🎙️</button>
   <button class="icon-btn" id="tts-btn"  title="Toggle voice" onclick="toggleTTS()">🔊</button>
   <button class="icon-btn" id="send-btn" title="Send"         onclick="sendQuery()">➤</button>
@@ -212,17 +212,17 @@
     const visited = localStorage.getItem("jarvis_visited");
     if (!visited) {
       // Speak welcome after a short delay so browser allows autoplay
-      setTimeout(() => speak("Hello cipheroot. I am Jarvis. How may I help you?"), 600);
+      setTimeout(() => speak("Hello siddarth my love. I'm mega project Jarvis. How may I help you?"), 600);
     } else {
       document.getElementById("welcome-overlay").classList.add("hidden");
-      addMessage("jarvis", "Welcome back. How can I help you?");
+      addMessage("SIDDARTH KA MEGA PROJECT JARVIS", "Welcome back my love siddharth. How can I help you?");
     }
   });
 
   function dismissWelcome() {
     localStorage.setItem("jarvis_visited", "true");
     document.getElementById("welcome-overlay").classList.add("hidden");
-    addMessage("jarvis", "Hello cipheroot. I'm Jarvis. How may I help you?");
+    addMessage("SIDDARTH KA MEGA PROJECT JARVIS", "Hello siddarth my love. I'm mega project Jarvis. How may I help you?");
   }
 
   // ── TTS (Web Speech API) ───────────────────────────────────────────────────
