@@ -59,7 +59,10 @@ def chat():
             json={"model": OPENROUTER_MODEL, "messages": build_messages(chat_history, query)},
             timeout=60,
         )
-        reply = clean_text(resp.json()["choices"][0]["message"]["content"])
+        result = resp.json()
+        if "choices" not in result:
+            return _cors_response(jsonify({"error": result.get("error", {}).get("message", str(result))}), 500)
+        reply = clean_text(result["choices"][0]["message"]["content"])
     except Exception as e:
         return _cors_response(jsonify({"error": str(e)}), 500)
 
