@@ -252,7 +252,16 @@
     const utt = new SpeechSynthesisUtterance(text);
     utt.rate = 1.05;
     utt.pitch = 0.9;
-    window.speechSynthesis.speak(utt);
+    // Firefox needs voices to be loaded first
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length === 0) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.onvoiceschanged = null;
+        window.speechSynthesis.speak(utt);
+      };
+    } else {
+      window.speechSynthesis.speak(utt);
+    }
   }
 
   function toggleTTS() {
