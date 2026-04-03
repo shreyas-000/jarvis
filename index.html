@@ -23,6 +23,7 @@
       background: var(--bg);
       color: var(--text);
       height: 100vh;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -246,22 +247,37 @@
   }
 
   // ── TTS (Web Speech API) ───────────────────────────────────────────────────
+  let ttsUnlocked = false;
+
+  // Unlock TTS on first user gesture (required by Firefox & mobile browsers)
+  function unlockTTS() {
+    if (ttsUnlocked) return;
+    ttsUnlocked = true;
+    const silent = new SpeechSynthesisUtterance('');
+    window.speechSynthesis.speak(silent);
+  }
+  document.addEventListener('click', unlockTTS, { once: true });
+  document.addEventListener('keydown', unlockTTS, { once: true });
+
   function speak(text) {
     if (!ttsEnabled || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const utt = new SpeechSynthesisUtterance(text);
     utt.rate = 1.05;
     utt.pitch = 0.9;
-    // Firefox needs voices to be loaded first
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length === 0) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.onvoiceschanged = null;
+    const trySpeak = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length === 0) {
+        window.speechSynthesis.onvoiceschanged = () => {
+          window.speechSynthesis.onvoiceschanged = null;
+          window.speechSynthesis.speak(utt);
+        };
+      } else {
         window.speechSynthesis.speak(utt);
-      };
-    } else {
-      window.speechSynthesis.speak(utt);
-    }
+      }
+    };
+    // Small delay ensures gesture unlock has propagated
+    setTimeout(trySpeak, 100);
   }
 
   function toggleTTS() {
